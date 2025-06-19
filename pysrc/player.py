@@ -7,19 +7,35 @@ class Player:
         self.y = y
         self.color = (150, 200, 255) if player_num == 1 else (255, 180, 200)
         self.controls = {
-            1: {"up": pygame.K_w, "down": pygame.K_s, "left": pygame.K_a, "right": pygame.K_d},
-            2: {"up": pygame.K_UP, "down": pygame.K_DOWN, "left": pygame.K_LEFT, "right": pygame.K_RIGHT}
+            1: {"up": pygame.K_w, "down": pygame.K_s, "left": pygame.K_a, "right": pygame.K_d, "bomb": pygame.K_SPACE},
+            2: {"up": pygame.K_UP, "down": pygame.K_DOWN, "left": pygame.K_LEFT, "right": pygame.K_RIGHT, "bomb": pygame.K_RETURN}
         }[player_num]
+        self.bomb_cooldown = 0.2
+        self.last_bomb_time = 0
 
-    def handle_input(self, keys):
+    def handle_input(self, keys, bombs, game_map):
+        moved = False
         if keys[self.controls["up"]]:
-            self.y = max(1, self.y - 1)
+            if game_map.is_walkable(self.x, self.y - 1):
+                self.y -= 1
+                moved = True
         elif keys[self.controls["down"]]:
-            self.y = min(MAP_HEIGHT - 2, self.y + 1)
+            if game_map.is_walkable(self.x, self.y + 1):
+                self.y += 1
+                moved = True
         elif keys[self.controls["left"]]:
-            self.x = max(1, self.x - 1)
+            if game_map.is_walkable(self.x - 1, self.y):
+                self.x -= 1
+                moved = True
         elif keys[self.controls["right"]]:
-            self.x = min(MAP_WIDTH - 2, self.x + 1)
+            if game_map.is_walkable(self.x + 1, self.y):
+                self.x += 1
+                moved = True
+
+        # 放置炸弹
+        if keys[self.controls["bomb"]]:
+            if all(b.x != self.x or b.y != self.y for b in bombs):
+                bombs.append(__import__('pysrc.bomb').bomb.Bomb(self.x, self.y))
 
     def draw(self, screen):
         rect = pygame.Rect(self.x * TILE_SIZE + 8, self.y * TILE_SIZE + 8, TILE_SIZE - 16, TILE_SIZE - 16)

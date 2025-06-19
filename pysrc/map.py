@@ -2,7 +2,6 @@ import pygame
 import random
 from pysrc.config import *
 
-# 地图元素定义
 WALL = "W"
 BRICK = "B"
 EMPTY = " "
@@ -10,6 +9,7 @@ EMPTY = " "
 class GameMap:
     def __init__(self):
         self.grid = [[EMPTY for _ in range(MAP_WIDTH)] for _ in range(MAP_HEIGHT)]
+        self.surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self._generate_map()
 
     def _generate_map(self):
@@ -22,7 +22,6 @@ class GameMap:
                 elif random.random() < 0.7:
                     self.grid[y][x] = BRICK
 
-        # 留出生点（左上 & 右下）
         self._clear_spawn_area(1)
         self._clear_spawn_area(2)
 
@@ -36,6 +35,7 @@ class GameMap:
                 self.grid[sy - dy][sx - dx] = EMPTY
 
     def draw(self, screen):
+        self.surface.fill(BG_COLOR)
         for y in range(MAP_HEIGHT):
             for x in range(MAP_WIDTH):
                 tile = self.grid[y][x]
@@ -45,7 +45,13 @@ class GameMap:
                     BRICK: (245, 180, 130),
                     EMPTY: (255, 240, 250)
                 }[tile]
-                pygame.draw.rect(screen, color, rect)
+                pygame.draw.rect(self.surface, color, rect)
+        screen.blit(self.surface, (0, 0))
 
     def get_spawn_point(self, player_num):
         return (1, 1) if player_num == 1 else (MAP_WIDTH - 2, MAP_HEIGHT - 2)
+
+    def is_walkable(self, x, y):
+        if 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT:
+            return self.grid[y][x] == EMPTY
+        return False
