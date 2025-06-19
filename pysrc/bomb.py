@@ -1,4 +1,5 @@
 import pygame
+from pysrc.explosion import Explosion
 from pysrc.config import *
 from pysrc.map import EMPTY, BRICK
 
@@ -22,7 +23,6 @@ class Bomb:
 
     def explode(self, game_map, range_len=1):
         affected_tiles = [(self.x, self.y)]
-
         for dx, dy in [(1,0), (-1,0), (0,1), (0,-1)]:
             for i in range(1, range_len + 1):
                 tx, ty = self.x + dx * i, self.y + dy * i
@@ -36,7 +36,7 @@ class Bomb:
                     break
 
         for x, y in affected_tiles:
-            rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-            pygame.draw.rect(game_map.surface, (255, 100, 100), rect)
             if game_map.grid[y][x] == BRICK:
                 game_map.grid[y][x] = EMPTY
+
+        return [Explosion(x, y) for (x, y) in affected_tiles]
