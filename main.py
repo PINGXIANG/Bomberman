@@ -2,7 +2,7 @@ import pygame
 from pysrc.map import GameMap
 from pysrc.player import Player
 from pysrc.bomb import Bomb
-from pysrc.ai import AIPlayer
+from pysrc.ai import SimpleRandomAI, SimpleChaseAI
 from pysrc.config import *
 
 pygame.init()
@@ -14,9 +14,12 @@ clock = pygame.time.Clock()
 game_map = GameMap()
 player1 = Player(1, *game_map.get_spawn_point(1))
 player2 = Player(2, *game_map.get_spawn_point(2))
-ai_player = AIPlayer(3, MAP_WIDTH // 2, MAP_HEIGHT // 2)
+ai_players = [
+    SimpleChaseAI(3, MAP_WIDTH // 2, MAP_HEIGHT // 2, lambda: [player1, player2]),
+    # SimpleRandomAI(4, 1, 1), # 你也可以加多个不同 AI 同场对战
+]
+players = [player1, player2] + ai_players
 
-players = [player1, player2, ai_player]
 bombs = []
 explosions = []
 
@@ -35,8 +38,9 @@ while running:
     if player2.alive:
         player2.handle_input(keys, bombs, game_map)
 
-    if ai_player.alive:
-        ai_player.update(bombs, game_map)
+    for ai in ai_players:
+        if ai.alive:
+            ai.update(bombs, game_map)
 
     # 炸弹处理
     for bomb in bombs[:]:
